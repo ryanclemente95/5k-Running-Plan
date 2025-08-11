@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>5K Builder — Aug–Nov 2025 (v5)</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --pill: #f1f5f9;
+      --accent: #0ea5e9;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --violet: #8b5cf6;
+      --teal: #14b8a6;
+      --gray: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, system-ui; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 8px 12px 96px; }
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    h2 { font-size: 16px; margin: 0 0 8px; }
+    p { margin: 0 0 10px; color: var(--muted); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); padding: 12px; margin: 12px 0; }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .progress { height: 10px; background: var(--pill); border-radius: 999px; overflow: hidden; }
+    .bar { height: 10px; background: var(--accent); }
+    .pill { background: var(--pill); border-radius: 999px; padding: 4px 8px; font-size: 12px; color: #334155; display: inline-flex; align-items: center; gap: 6px; margin-right: 6px; }
+    label { font-size: 13px; color: var(--muted); }
+    select, input[type="number"], input[type="date"] { width: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 10px; font-size: 14px; background: #fff; }
+    input[type="checkbox"] { width: 20px; height: 20px; }
+    .btn { border: 1px solid var(--border); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 14px; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.inline { padding: 6px 10px; font-size: 12px; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .title { font-weight: 700; }
+    .subtitle { font-size: 12px; color: var(--muted); }
+    details summary { cursor: pointer; list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    .week-head { padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; }
+    .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+    @media (min-width: 560px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+    .target { font-size: 12px; color: #1e293b; background: #e2e8f0; border-radius: 999px; padding: 2px 8px; }
+    .tabs { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--border); display: flex; gap: 6px; padding: 8px; z-index: 10; }
+    .tab { flex: 1; text-align: center; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); font-size: 14px; }
+    .tab.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(14,165,233,0.15) inset; }
+    .badge { display:inline-block; border-radius: 8px; padding: 2px 6px; font-size: 11px; color: #fff; }
+    .A { background: var(--teal); }
+    .B { background: var(--rose); }
+    .C { background: var(--violet); }
+    .REST { background: var(--gray); }
+    .calendar { width: 100%; border-collapse: collapse; }
+    .calendar th, .calendar td { border: 1px solid var(--border); padding: 6px; vertical-align: top; min-width: 42px; height: 58px; }
+    .calday { font-size: 11px; color: var(--muted); }
+    .caldot { margin-top: 4px; display: inline-block; padding: 2px 6px; border-radius: 999px; color: #fff; font-size: 11px; }
+    .totals { display:flex; flex-wrap:wrap; gap:10px; }
+    .total { background: var(--pill); border-radius: 12px; padding: 8px 10px; font-size: 12px; }
+    .todayBanner { display:flex; align-items:center; gap:10px; padding:10px; border-radius:12px; background:#e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>5K Builder (Aug–Nov 2025) — v5</h1>
+      <p>3 runs/week after lifting. Data saves on this device.</p>
+    </header>
+
+    <section class="card">
+      <div class="between">
+        <div style="flex:1">
+          <div class="subtitle">Overall Progress</div>
+          <div class="progress"><div id="bar" class="bar" style="width:0%"></div></div>
+          <div id="pct" class="hint">0/0 sessions · 0%</div>
+        </div>
+        <button id="reset" class="btn" type="button" onclick="App.onReset()">Reset</button>
+      </div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab active" id="tab-home" type="button" onclick="App.switchTab('home')">Home</button>
+      <button class="tab" id="tab-plan" type="button" onclick="App.switchTab('plan')">Plan</button>
+      <button class="tab" id="tab-stats" type="button" onclick="App.switchTab('stats')">Stats</button>
+      <button class="tab" id="tab-settings" type="button" onclick="App.switchTab('settings')">Settings</button>
+    </nav>
+
+    <!-- HOME TAB -->
+    <section class="card tabpanel" id="home" style="display:block">
+      <div class="between">
+        <div class="row" style="gap:12px">
+          <div>
+            <div class="title">Today</div>
+            <div id="todayLabel" class="subtitle"></div>
+          </div>
+        </div>
+        <input type="date" id="datePicker" onchange="App.onDateChange(this.value)" />
+      </div>
+
+      <div class="card todayBanner" id="todayBanner"></div>
+
+      <div class="card">
+        <h2>Weight focus (auto)</h2>
+        <div class="grid grid-2">
+          <div>
+            <label>Today</label>
+            <select id="weightsToday" onchange="App.onWeightsChange(this.value)">
+              <option>Chest & Triceps</option>
+              <option>Back & Biceps</option>
+              <option>Legs</option>
+              <option>Upper Mix</option>
+              <option>Mobility/Core</option>
+              <option>Rest</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn inline" type="button" onclick="App.setDefaultForThisWeekday()">Set as default for this weekday</button>
+          <span id="weekdayDefaultNote" class="hint"></span>
+        </div>
+      </div>
+
+      <div class="card" id="cardioCard">
+        <h2>Recommended cardio</h2>
+        <div id="recCardio"></div>
+        <div id="recMeta" class="hint" style="margin-top:6px"></div>
+
+        <div id="logArea" style="margin-top:10px">
+          <div class="grid grid-3">
+            <div><label>Time (min)</label><input type="number" id="logTime" min="0" /></div>
+            <div><label>Distance (mi)</label><input type="number" id="logDist" min="0" step="0.01" /></div>
+            <div>
+              <label>Difficulty</label>
+              <select id="logDiff">
+                <option value="easy">Very easy / easy</option>
+                <option value="moderate" selected>Moderate</option>
+                <option value="hard">Hard / very hard</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <input type="checkbox" id="logDone" /> <label for="logDone">Mark today as done</label>
+            <button id="saveLog" class="btn primary" style="margin-left:auto" type="button" onclick="App.saveLog()">Save</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAN TAB -->
+    <section class="card tabpanel" id="plan" style="display:none">
+      <div class="between" style="align-items:flex-end">
+        <div>
+          <div class="title" style="margin-bottom:6px">Effort Key (plain English)</div>
+          <div>
+            <span class="pill"><strong>Easy:</strong> full sentences</span>
+            <span class="pill"><strong>Steady:</strong> short sentences</span>
+            <span class="pill"><strong>Tempo:</strong> controlled, sustainable</span>
+            <span class="pill"><strong>Intervals:</strong> fast reps, full recoveries</span>
+            <span class="pill"><strong>Goal pace:</strong> smooth 5K speed</span>
+          </div>
+        </div>
+        <div class="row">
+          <label for="weekSel">Week</label>
+          <select id="weekSel" onchange="App.renderPlan()"></select>
+          <label class="row"><input type="checkbox" id="hideDone" onchange="App.renderPlan()"> Hide completed</label>
+        </div>
+      </div>
+      <div id="weeks"></div>
+    </section>
+
+    <!-- STATS TAB -->
+    <section class="card tabpanel" id="stats" style="display:none">
+      <div class="between">
+        <div class="title">Calendar & Totals</div>
+        <div class="row">
+          <button class="btn inline" type="button" onclick="App.shiftMonth(-1)">◀</button>
+          <div id="monthLabel" class="subtitle"></div>
+          <button class="btn inline" type="button" onclick="App.shiftMonth(1)">▶</button>
+        </div>
+      </div>
+      <table class="calendar" id="calendar"></table>
+      <div class="totals" id="totals"></div>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section class="card tabpanel" id="settings" style="display:none">
+      <h2>Run day mapping</h2>
+      <p class="hint">Defaults: Mon = Quality (B), Tue = Easy (A), Sat = Long (C). Wed is leg day—keep it run-free.</p>
+      <div class="grid grid-3">
+        <div>
+          <label>Quality (B)</label>
+          <select id="dayB" onchange="App.onMapChange('B', this.value)">
+            <option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option>
+          </select>
+        </div>
+        <div>
+          <label>Easy + strides (A)</label>
+          <select id="dayA" onchange="App.onMapChange('A', this.value)">
+            <option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option>
+          </select>
+        </div>
+        <div>
+          <label>Long easy (C)</label>
+          <select id="dayC" onchange="App.onMapChange('C', this.value)">
+            <option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option>
+          </select>
+        </div>
+      </div>
+
+      <h2 style="margin-top:12px">Weights schedule by weekday</h2>
+      <div class="grid grid-2" id="weightsTable"></div>
+    </section>
+  </div>
+
+<script>
+// App namespace to avoid any binding issues
+window.App = (function(){
+  const START_ISO = "2025-08-11"; // Monday
+  const END_ISO = "2025-11-30";   // Sunday
+  const STORAGE_KEY = "fivek_builder_app_v5";
+
+  const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const DOW_ORDER = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  // Shortcuts
+  const $ = (sel) => document.querySelector(sel);
+
+  // State
+  let store = load();
+  let plan = generatePlan();
+  let selectedDate = clampDate(new Date());
+
+  // Defaults
+  store.settings = store.settings || { dayA: "Tue", dayB: "Mon", dayC: "Sat" };
+  store.weights = store.weights || {
+    Mon: "Chest & Triceps",
+    Tue: "Back & Biceps",
+    Wed: "Legs",
+    Thu: "Upper Mix",
+    Fri: "Upper Mix",
+    Sat: "Mobility/Core",
+    Sun: "Rest"
+  };
+  store.overrides = store.overrides || {}; // per-ISO date: { weights: "Legs" }
+  store.days = store.days || {};
+  save();
+
+  // Init UI values
+  $("#datePicker").valueAsDate = selectedDate;
+  $("#dayA").value = store.settings.dayA;
+  $("#dayB").value = store.settings.dayB;
+  $("#dayC").value = store.settings.dayC;
+  buildWeightsTable();
+  populateWeekSelector();
+
+  // Initial render
+  renderAll();
+
+  // ---- Public methods ----
+  function switchTab(name){
+    ["home","plan","stats","settings"].forEach(id => {
+      $("#"+id).style.display = (id === name ? "block" : "none");
+      $("#tab-"+id).classList.toggle("active", id === name);
+    });
+    if (name === "stats") { renderCalendar(); renderTotals(); }
+    if (name === "plan") { renderPlan(); }
+    if (name === "home") { renderHome(); }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function onReset(){
+    if (!confirm("Reset all data?")) return;
+    const keep = { settings: store.settings, weights: store.weights };
+    store = Object.assign({}, keep, { overrides: {}, days: {} });
+    save();
+    renderAll();
+  }
+
+  function onDateChange(val){
+    selectedDate = clampDate(new Date(val));
+    renderAll();
+  }
+
+  function onWeightsChange(val){
+    const iso = toISO(selectedDate);
+    store.overrides[iso] = store.overrides[iso] || {};
+    store.overrides[iso].weights = val;
+    save();
+    renderHome();
+  }
+
+  function setDefaultForThisWeekday(){
+    const dow = DOW[selectedDate.getDay()];
+    const sel = $("#weightsToday").value;
+    store.weights[dow] = sel;
+    save();
+    renderHome();
+    buildWeightsTable();
+  }
+
+  function onMapChange(which, day){
+    if (which === "A") store.settings.dayA = day;
+    if (which === "B") store.settings.dayB = day;
+    if (which === "C") store.settings.dayC = day;
+    save();
+    renderAll();
+  }
+
+  function saveLog(){
+    const info = getTodayRunInfo(selectedDate);
+    const key = info ? keyFor(info.weekNum, info.sessionIdx) : "x-" + toISO(selectedDate);
+    const newData = {
+      done: $("#logDone").checked,
+      time: Number($("#logTime").value || 0),
+      dist: Number($("#logDist").value || 0),
+      diff: $("#logDiff").value,
+      date: toISO(selectedDate),
+      type: info?.type || "REST"
+    };
+    setEntry(key, newData);
+    store.days[toISO(selectedDate)] = Object.assign({}, newData);
+    save();
+    renderAll();
+    // UX confirmation
+    $("#saveLog").textContent = "Saved ✓";
+    setTimeout(() => { $("#saveLog").textContent = "Save"; }, 1200);
+  }
+
+  function shiftMonth(delta){
+    const cur = new Date($("#monthLabel").dataset.anchor || selectedDate);
+    cur.setMonth(cur.getMonth() + delta);
+    $("#monthLabel").dataset.anchor = cur.toISOString();
+    renderCalendar(cur);
+    renderTotals();
+  }
+
+  // ---- Renders ----
+  function renderAll(){ renderProgress(); renderHome(); renderPlan(); renderCalendar(); renderTotals(); }
+
+  function renderProgress(){
+    const totalSessions = plan.length * 3;
+    const doneSessions = Object.values(store).filter(v => v && v.done).length;
+    const pctNum = Math.round((doneSessions / totalSessions) * 100);
+    $("#bar").style.width = (isFinite(pctNum) ? pctNum : 0) + "%";
+    $("#pct").textContent = `${doneSessions}/${totalSessions} sessions · ${isFinite(pctNum) ? pctNum : 0}%`;
+  }
+
+  function renderHome(){
+    const nice = selectedDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+    $("#todayLabel").textContent = nice;
+
+    // Default weights and override for this date
+    const dow = DOW[selectedDate.getDay()];
+    const def = store.weights[dow] || "Rest";
+    const override = store.overrides[toISO(selectedDate)]?.weights;
+    $("#weightsToday").value = override || def;
+    $("#weekdayDefaultNote").textContent = `Default for ${dow}: ${def}`;
+
+    // Today's run type (A/B/C/REST)
+    const info = getTodayRunInfo(selectedDate);
+    const type = info?.type || "REST";
+    const typeText = (type === "A") ? "Easy + strides" : (type === "B") ? "Quality / Intervals" : (type === "C") ? "Long easy" : "No run scheduled";
+    $("#todayBanner").innerHTML = `<span class="badge ${type}">${type}</span> <div><div class="title">Today's run: ${typeText}</div><div class="subtitle">${info ? info.session.title : "Optional brisk walk 20–30 min"}</div></div>`;
+
+    // Recommendation in plain English, scaled by weights
+    const rec = buildRecommendation(info, $("#weightsToday").value);
+    $("#recCardio").innerHTML = rec.html;
+    $("#recMeta").textContent = rec.meta;
+
+    // Pre-fill any previous log
+    const dayEntry = store.days[toISO(selectedDate)];
+    $("#logTime").value = dayEntry?.time ?? "";
+    $("#logDist").value = dayEntry?.dist ?? "";
+    $("#logDiff").value = dayEntry?.diff ?? "moderate";
+    $("#logDone").checked = !!dayEntry?.done;
+  }
+
+  function renderPlan(){
+    const weeksEl = $("#weeks");
+    weeksEl.innerHTML = "";
+    const selected = Number($("#weekSel").value);
+    plan.forEach(w => {
+      const allDone = [0,1,2].every(i => getEntry(keyFor(w.week, i))?.done);
+      if ($("#hideDone").checked && allDone) return;
+      const hidden = w.week !== selected;
+      weeksEl.appendChild(WeekCard(w, hidden));
+    });
+  }
+
+  function renderCalendar(anchor){
+    const monthLabel = $("#monthLabel");
+    const base = anchor || new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    monthLabel.dataset.anchor = base.toISOString();
+    monthLabel.textContent = base.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+    const calendarEl = $("#calendar");
+    const y = base.getFullYear(), m = base.getMonth();
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m + 1, 0);
+    const startDay = (first.getDay() + 6) % 7; // Monday-first
+    const rows = Math.ceil((startDay + last.getDate()) / 7);
+
+    let html = "<thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead><tbody>";
+    let day = 1 - startDay;
+    for (let r = 0; r < rows; r++) {
+      html += "<tr>";
+      for (let c = 0; c < 7; c++) {
+        const d = new Date(y, m, day);
+        if (d.getMonth() !== m) {
+          html += `<td class="hint"></td>`;
+        } else {
+          const iso = toISO(d);
+          const dayRec = (store.days || {})[iso];
+          const badge = dayRec?.done ? `<span class="caldot ${dayRec.type}">${dayRec.type}</span>` : "";
+          const diff = dayRec?.diff ? ` · ${dayRec.diff}` : "";
+          html += `<td data-iso="${iso}" onclick="App.jumpToDate('${iso}')"><div class="calday">${d.getDate()}</div>${badge}${diff}</td>`;
+        }
+        day++;
+      }
+      html += "</tr>";
+    }
+    html += "</tbody>";
+    calendarEl.innerHTML = html;
+  }
+
+  function renderTotals(){
+    const anchorISO = $("#monthLabel").dataset.anchor;
+    const base = anchorISO ? new Date(anchorISO) : selectedDate;
+    const monthISO = toISO(new Date(base.getFullYear(), base.getMonth(), 1)).slice(0,7);
+    let mRuns = 0, mMiles = 0, mTime = 0;
+    let tRuns = 0, tMiles = 0, tTime = 0;
+    for (const [k,v] of Object.entries(store.days || {})) {
+      const monthOf = (v.date || k).slice(0,7);
+      if (v.done) {
+        tRuns++; tMiles += Number(v.dist||0); tTime += Number(v.time||0);
+        if (monthOf === monthISO) { mRuns++; mMiles += Number(v.dist||0); mTime += Number(v.time||0); }
+      }
+    }
+    $("#totals").innerHTML = `
+      <div class="total"><strong>This month:</strong> ${mRuns} runs · ${mMiles.toFixed(2)} mi · ${mTime} min</div>
+      <div class="total"><strong>Overall:</strong> ${tRuns} runs · ${tMiles.toFixed(2)} mi · ${tTime} min</div>
+    `;
+  }
+
+  // ---- Helpers & components ----
+  function WeekCard(week, hidden){
+    const sec = document.createElement("section");
+    sec.className = "card";
+    const open = !hidden;
+
+    const head = document.createElement("div");
+    head.className = "week-head";
+    const left = document.createElement("div");
+    left.innerHTML = `<div class="subtitle">Week ${week.week} · ${week.phase}</div><div class="title">${fmtDate(week.start)} – ${fmtDate(week.end)}</div>`;
+    const right = document.createElement("div");
+    const count = [0,1,2].filter(i => getEntry(keyFor(week.week, i))?.done).length;
+    right.innerHTML = `<span class="pill">${count}/3 done</span>`;
+    head.appendChild(left); head.appendChild(right);
+
+    const details = document.createElement("details");
+    if (open) details.setAttribute("open","");
+    const summary = document.createElement("summary");
+    summary.appendChild(head);
+    details.appendChild(summary);
+
+    week.sessions.forEach((s, idx) => details.appendChild(SessionRow(week, idx, s)));
+    sec.appendChild(details);
+    return sec;
+  }
+
+  function SessionRow(week, idx, s){
+    const wrap = document.createElement("div");
+    wrap.style.padding = "12px";
+    wrap.style.borderTop = "1px solid var(--border)";
+    const key = keyFor(week.week, idx);
+    const entry = getEntry(key) || {};
+
+    const targetDay = idx === 0 ? store.settings.dayA : idx === 1 ? store.settings.dayB : store.settings.dayC;
+    const targetDate = dateForDay(week.start, targetDay);
+    const type = idx === 0 ? "A" : idx === 1 ? "B" : "C";
+
+    const top = document.createElement("div");
+    top.className = "between";
+    const l = document.createElement("div");
+    const badge = `<span class="badge ${type}">${type}</span>`;
+    const target = `<span class="target">Target: ${targetDay} ${fmtDate(targetDate)}</span>`;
+    l.innerHTML = `<div class="title">${s.title} ${badge}</div><div class="subtitle" style="margin-top:4px">${s.text}</div>${s.tips ? `<div class="hint" style="margin-top:4px">Tip: ${s.tips}</div>` : ""}<div style="margin-top:6px">${target}</div>`;
+    const r = document.createElement("label");
+    r.className = "row";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = !!entry.done;
+    cb.addEventListener("change", e => { setEntry(key, { done: e.target.checked }); renderPlan(); renderCalendar(); renderTotals(); renderProgress(); });
+    r.appendChild(cb);
+    r.appendChild(document.createTextNode("Done"));
+    top.appendChild(l); top.appendChild(r);
+
+    const grid = document.createElement("div");
+    grid.className = "grid grid-3";
+    grid.style.marginTop = "8px";
+
+    grid.appendChild(numField("Time (min)", entry.time ?? "", v => setEntry(key, { time: Number(v) })));
+    grid.appendChild(numField("Distance (mi)", entry.dist ?? "", v => setEntry(key, { dist: Number(v) }), 0.01));
+    grid.appendChild(selectField("Difficulty", entry.diff || "moderate", {easy:"Very easy / easy", moderate:"Moderate", hard:"Hard / very hard"}, v => setEntry(key, { diff: v })));
+
+    wrap.appendChild(top);
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function numField(labelText, value, onChange, step){
+    const d = document.createElement("div");
+    d.innerHTML = `<label class="hint" style="display:block;margin-bottom:4px">${labelText}</label>`;
+    const input = document.createElement("input");
+    input.type = "number"; input.min = "0";
+    if (step) input.step = String(step);
+    input.value = value;
+    input.addEventListener("input", e => onChange(e.target.value));
+    d.appendChild(input);
+    return d;
+  }
+
+  function selectField(labelText, value, options, onChange){
+    const d = document.createElement("div");
+    d.innerHTML = `<label class="hint" style="display:block;margin-bottom:4px">${labelText}</label>`;
+    const sel = document.createElement("select");
+    for (const [val, text] of Object.entries(options)) {
+      const opt = document.createElement("option");
+      opt.value = val; opt.textContent = text;
+      sel.appendChild(opt);
+    }
+    sel.value = value;
+    sel.addEventListener("change", e => onChange(e.target.value));
+    d.appendChild(sel);
+    return d;
+  }
+
+  // ---- Logic ----
+  function buildRecommendation(info, weightStr){
+    if (!info || info.type === "REST") {
+      return {
+        html: `<div class="title">Rest or optional brisk walk</div>
+               <div class="subtitle" style="margin-top:4px">Walk 20–30 minutes at a chatty pace.</div>`,
+        meta: ""
+      };
+    }
+    const w = info.weekNum;
+    const type = info.type;
+    const adj = weightAdjustment(weightStr, type);
+
+    const easyDur = clamp(mapRange(w, 1, 16, 20, 35) * adj.factor, 15, 40);
+    const longDur = clamp(mapRange(w, 1, 16, 30, 55) * adj.factor, 25, 60);
+
+    let title = "", lines = [];
+    if (type === "A") {
+      const dur = Math.round(easyDur);
+      title = `Easy run ${dur} min + relaxed strides`;
+      lines.push(`Run easy—able to speak in full sentences.`);
+      lines.push(`Finish with 4×20‑second relaxed strides, 1‑minute walking between.`);
+    } else if (type === "B") {
+      if (w <= 4) {
+        let reps = clamp(Math.round(mapRange(w, 1, 4, 8, 10) * adj.repFactor), 4, 10);
+        title = `Intro intervals — ${reps} repeats`;
+        lines.push(`${reps}×: 1 minute faster / 1 minute easy jog. Faster = quick but controlled; stop with 1–2 reps in the tank.`);
+      } else if (w <= 9) {
+        if (w % 2 === 1) {
+          let reps = Math.max(3, Math.round((4 + Math.round((w - 5) / 2)) * adj.repFactor));
+          title = `Tempo repeats — ${reps} sets`;
+          lines.push(`${reps}×: 3–4 minutes “comfortably hard”, 2 minutes very easy jog.`);
+        } else {
+          let reps = Math.max(4, Math.round(6 * adj.repFactor));
+          title = `Short intervals — ${reps} sets`;
+          lines.push(`${reps}×: 2 minutes fast (smooth, not sprint), 2 minutes easy jog.`);
+        }
+      } else if (w <= 14) {
+        if (w <= 12) {
+          title = `Tempo work`;
+          lines.push(`3×6 minutes “comfortably hard” (2–3 minutes easy) OR 18–20 minutes steady, continuous.`);
+        } else if (w === 13) {
+          title = `Sharpen with intervals`;
+          lines.push(`6×3 minutes fast with 2 minutes easy jog.`);
+        } else {
+          title = `Goal‑pace tune‑up`;
+          lines.push(`5×2 minutes at intended 5K speed, 2 minutes easy jog. Smooth, not all‑out.`);
+        }
+      } else {
+        title = `Light sharpening`;
+        lines.push(`3×3 minutes “comfortably hard” (2 minutes easy) OR 6×30‑second quick bursts (90 seconds easy).`);
+      }
+    } else if (type === "C") {
+      const dur = Math.round(longDur);
+      title = `Long easy run ${dur} min`;
+      lines.push(`Keep it easy—you can chat. Optional: last 5–10 minutes a touch quicker.`);
+    }
+
+    if (adj.note) lines.push(`<em>${adj.note}</em>`);
+
+    const html = `<div class="row" style="justify-content:space-between"><div>
+        <div class="title">${title} <span class="badge ${type}">${type}</span></div>
+        ${lines.map(l => `<div class="subtitle" style="margin-top:4px">${l}</div>`).join("")}
+      </div>
+      <div><span class="pill">${fmtDate(info.weekStart)}–${fmtDate(info.weekEnd)}</span></div></div>`;
+
+    const meta = `Target day: ${info.mappingDay} · Week ${w} · Weights: ${weightStr}`;
+    return { html, meta };
+  }
+
+  function weightAdjustment(weightStr, type){
+    const s = (weightStr || "").toLowerCase();
+    let factor = 1.0, repFactor = 1.0, note = "";
+    if (s.includes("legs")) {
+      factor = type === "B" ? 0.6 : 0.7;
+      repFactor = 0.7;
+      note = "Leg day: keep it conservative. If heavy, swap to 20–25 min walk/jog.";
+    } else if (s.includes("upper mix")) {
+      factor = (type === "B") ? 0.9 : 1.0;
+      repFactor = 0.9;
+      note = "Upper mix: keep quality crisp, not crushing.";
+    } else if (s.includes("mobility") || s.includes("core") || s.includes("rest")) {
+      factor = 1.05; repFactor = 1.0;
+    } else {
+      factor = 1.0; repFactor = 1.0;
+    }
+    return { factor, repFactor, note };
+  }
+
+  // ---- Plan creation ----
+  function generatePlan(){
+    const start = new Date(START_ISO);
+    const end = new Date(END_ISO);
+    const totalWeeks = clamp(weekDiff(start, end) + 1, 1, 30);
+    const weeks = [];
+    for (let w = 1; w <= totalWeeks; w++) {
+      const wStart = addDays(startOfWeek(start), (w - 1) * 7);
+      const wEnd = addDays(wStart, 6);
+      let phase = "Base";
+      if (w >= 5 && w <= 9) phase = "Build";
+      else if (w >= 10 && w <= 14) phase = "Peak";
+      else if (w >= 15) phase = "Taper";
+      const sessions = getWeekWorkouts(w);
+      weeks.push({ week: w, start: wStart, end: wEnd, phase, sessions });
+    }
+    return weeks;
+  }
+
+  function getWeekWorkouts(w){
+    const base = [
+      { title: "Run A — Easy + Strides", text: "Run easy. Finish with 4×20s relaxed strides, 1‑min walk between.", tips: "Light, quick steps." },
+      { title: "Run B — Intro Intervals", text: "8–10×(1 min faster / 1 min easy). Finish with reps in the tank.", tips: "Stop while you still feel good." },
+      { title: "Run C — Long Easy", text: "Long easy run. Conversation pace.", tips: "Prefer softer surfaces." }
+    ];
+    const build = [
+      { title: "Run A — Easy + Strides", text: "30–35 min easy + 4–6×20s strides.", tips: "Shake out first." },
+      { title: "Run B — Threshold/Intervals", text: (w % 2 === 1) ? "4–5×3–4 min comfortably hard, 2 min easy jog." : "6×2 min fast, 2 min easy jog.", tips: "Leave a couple reps." },
+      { title: "Run C — Long Easy", text: "35–50 min easy. Optional finish slightly quicker.", tips: "Cap if lifting heavy." }
+    ];
+    const peak = [
+      { title: "Run A — Easy + Strides", text: "30–35 min easy + 6×20s strides.", tips: "Smooth, not sprinty." },
+      { title: "Run B — Quality", text:
+        (w <= 12) ? "3×6 min comfortably hard (2–3 min easy) or 18–20 min steady." :
+        (w === 13) ? "6×3 min fast, 2 min easy." :
+        (w === 14) ? "5×2 min at 5K goal pace, 2 min easy." :
+        "5×2–3 min comfortably hard, 2 min easy.", tips: "Relax shoulders." },
+      { title: "Run C — Long Easy", text: "40–55 min easy. Optional 3–4×30s quick bursts mid-run.", tips: "Keep it under ~55 min." }
+    ];
+    const taper = [
+      { title: "Run A — Easy + Strides", text: "20–30 min easy + 6×20s strides.", tips: "Fresh > fit." },
+      { title: "Run B — Sharpen", text: (w === 15) ? "3×3 min comfortably hard, 2 min easy." : "6×30s quick, 90s easy.", tips: "Stop early if heavy." },
+      { title: "Run C — Time Trial", text: "10 min easy + 4 strides, then a 5K time trial.", tips: "Negative split if you can." }
+    ];
+    if (w <= 4) return base;
+    if (w <= 9) return build;
+    if (w <= 14) return peak;
+    return taper;
+  }
+
+  function populateWeekSelector(){
+    const weekSel = $("#weekSel");
+    weekSel.innerHTML = "";
+    plan.forEach(w => {
+      const opt = document.createElement("option");
+      opt.value = w.week;
+      opt.textContent = `Week ${w.week} (${fmtDate(w.start)}–${fmtDate(w.end)})`;
+      weekSel.appendChild(opt);
+    });
+    const cur = clamp(weekDiff(new Date(START_ISO), new Date()) + 1, 1, plan.length);
+    weekSel.value = cur;
+  }
+
+  function getTodayRunInfo(date){
+    const w = planWeekForDate(date);
+    if (!w) return null;
+    const type = mapRunTypeForDate(date);
+    if (type === "REST") return { type, weekNum: w.week, weekStart: w.start, weekEnd: w.end, mappingDay: DOW[date.getDay()] };
+    const idx = (type === "A") ? 0 : (type === "B" ? 1 : 2);
+    return { type, weekNum: w.week, weekStart: w.start, weekEnd: w.end, mappingDay: DOW[date.getDay()], sessionIdx: idx, session: w.sessions[idx] };
+  }
+
+  function planWeekForDate(date){
+    const start = new Date(START_ISO);
+    const wnum = clamp(weekDiff(start, date) + 1, 1, plan.length);
+    return plan.find(w => w.week === wnum);
+  }
+
+  function mapRunTypeForDate(date){
+    const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][date.getDay()];
+    if (store.settings.dayA === dow) return "A";
+    if (store.settings.dayB === dow) return "B";
+    if (store.settings.dayC === dow) return "C";
+    return "REST";
+  }
+
+  // ---- DOM builders for settings ----
+  function buildWeightsTable(){
+    const box = $("#weightsTable");
+    let html = "";
+    DOW_ORDER.forEach(d => {
+      html += `<div><label>${d}</label><select data-wday="${d}" onchange="App.onWeekdayWeightChange('${d}', this.value)">
+        <option>Chest & Triceps</option>
+        <option>Back & Biceps</option>
+        <option>Legs</option>
+        <option>Upper Mix</option>
+        <option>Mobility/Core</option>
+        <option>Rest</option>
+      </select></div>`;
+    });
+    box.innerHTML = html;
+    // set initial values
+    DOW_ORDER.forEach(d => {
+      const sel = box.querySelector('select[data-wday="'+d+'"]');
+      sel.value = store.weights[d] || "Rest";
+    });
+  }
+
+  function onWeekdayWeightChange(day, value){
+    store.weights[day] = value;
+    save();
+    renderHome();
+  }
+
+  // ---- Utils ----
+  function keyFor(w, i){ return `w${w}r${i+1}`; }
+  function getEntry(key){ return store[key]; }
+  function setEntry(key, obj){ store[key] = Object.assign({}, store[key] || {}, obj); save(); }
+  function load(){ try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : {}; } catch(e){ return {}; } }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+  function mapRange(x, inMin, inMax, outMin, outMax) {
+    const t = (x - inMin) / (inMax - inMin);
+    return outMin + (outMax - outMin) * clamp(t, 0, 1);
+  }
+  function addDays(date, days){ const d = new Date(date); d.setDate(d.getDate()+days); return d; }
+  function startOfWeek(date){ const d = new Date(date); const day = (d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(0,0,0,0); return d; }
+  function weekDiff(a,b){ const ms = startOfWeek(b) - startOfWeek(a); return Math.floor(ms / (7*24*3600*1000)); }
+  function fmtDate(d){ return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }); }
+  function toISO(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,"0"); const day=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${day}`; }
+  function dateForDay(weekStart, dowStr){ const idxMap = { Mon:0, Tue:1, Wed:2, Thu:3, Fri:4, Sat:5, Sun:6 }; return addDays(weekStart, idxMap[dowStr] ?? 0); }
+  function clampDate(d){
+    const a = new Date(START_ISO), b = new Date(END_ISO);
+    if (d < a) return a; if (d > b) return b; return d;
+  }
+
+  // Expose public API
+  return { switchTab, onReset, onDateChange, onWeightsChange, setDefaultForThisWeekday, onMapChange, saveLog, shiftMonth, renderPlan, jumpToDate: (iso)=>{ onDateChange(iso); switchTab('home'); }, onWeekdayWeightChange };
+})();
+</script>
+</body>
+</html>
